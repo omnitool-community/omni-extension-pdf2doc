@@ -6,14 +6,24 @@
 //@ts-check
 // pdftodoc.js
 import { OAIBaseComponent, WorkerContext, OmniComponentMacroTypes } from 'omni-sockets';
-import { setComponentInputs, setComponentOutputs, setComponentControls } from './utils/components_lib.js';
+import {
+  setComponentInputs,
+  setComponentOutputs,
+  setComponentControls,
+  is_valid,
+  clean_string,
+  console_log,
+  rebuildToTicketObjectsIfNeeded,
+  parse_text_to_array, 
+  save_text_to_cdn,
+  user_db_delete, 
+  user_db_get, 
+  user_db_put
+} from '../../../src/utils/omni-utils.js';
 const NS_ONMI = 'pdf2doc';
 
 import PDFParser from 'pdf2json';
 import { initialize_hasher, DEFAULT_HASHER_MODEL } from './utils/hashers.js'
-import { save_text_to_cdn } from './utils/cdn.js';
-import { is_valid, clean_string, console_log, rebuildToTicketObjectsIfNeeded, parse_text_to_array } from './utils/utils.js';
-import { user_db_delete, user_db_get, user_db_put } from './utils/database.js';
 
 let load_pdf_component = OAIBaseComponent
   .create(NS_ONMI, "pdf2doc")
