@@ -7232,10 +7232,10 @@ var require_lib2 = __commonJS({
 });
 
 // PdfToDocComponent.js
-import { OAIBaseComponent as OAIBaseComponent2, WorkerContext, OmniComponentMacroTypes as OmniComponentMacroTypes2 } from "omni-sockets";
+import { OAIBaseComponent as OAIBaseComponent2, WorkerContext, OmniComponentMacroTypes as OmniComponentMacroTypes2, BlockCategory as Category } from "omni-sockets";
 
 // ../../../src/utils/blocks.js
-async function runBlock(ctx, block_name, args, outputs2 = {}) {
+async function runBlock(ctx, block_name, args, outputs = {}) {
   try {
     const app = ctx.app;
     if (!app) {
@@ -7245,7 +7245,7 @@ async function runBlock(ctx, block_name, args, outputs2 = {}) {
     if (!blocks) {
       throw new Error("[runBlock] blocks not found in app");
     }
-    const result = await blocks.runBlock(ctx, block_name, args, outputs2);
+    const result = await blocks.runBlock(ctx, block_name, args, outputs);
     return result;
   } catch (err) {
     throw new Error(`Error running block ${block_name}: ${err}`);
@@ -8221,60 +8221,6 @@ async function save_text_to_cdn(ctx, text2) {
 
 // ../../../src/utils/component.js
 import { OAIBaseComponent, OmniComponentMacroTypes } from "omni-sockets";
-function generateTitle(value) {
-  const title = value.replace(/_/g, " ").replace(/\b\w/g, (match) => match.toUpperCase());
-  return title;
-}
-function setComponentInputs(component, inputs2) {
-  inputs2.forEach(function(input) {
-    const name = input.name;
-    const type = input.type;
-    const customSocket = input.customSocket;
-    const description = input.description;
-    const default_value = input.defaultValue;
-    let title = input.title;
-    const choices = input.choices;
-    const minimum = input.minimum;
-    const maximum = input.maximum;
-    const step = input.step;
-    const allow_multiple = input.allowMultiple;
-    if (!title || title === "")
-      title = generateTitle(name);
-    component.addInput(
-      component.createInput(name, type, customSocket).set("title", title || "").set("description", description || "").set("choices", choices || null).set("minimum", minimum || null).set("maximum", maximum || null).set("step", step || null).set("allowMultiple", allow_multiple || null).setDefault(default_value).toOmniIO()
-    );
-  });
-  return component;
-}
-function setComponentOutputs(component, outputs2) {
-  outputs2.forEach(function(output) {
-    const name = output.name;
-    const type = output.type;
-    const customSocket = output.customSocket;
-    const description = output.description;
-    let title = output.title;
-    if (!title || title === "")
-      title = generateTitle(name);
-    component.addOutput(
-      component.createOutput(name, type, customSocket).set("title", title || "").set("description", description || "").toOmniIO()
-    );
-  });
-  return component;
-}
-function setComponentControls(component, controls2) {
-  controls2.forEach(function(control) {
-    const name = control.name;
-    let title = control.title;
-    const placeholder = control.placeholder;
-    const description = control.description;
-    if (!title || title === "")
-      title = generateTitle(name);
-    component.addControl(
-      component.createControl(name).set("title", title || "").set("placeholder", placeholder || "").set("description", description || "").toOmniControl()
-    );
-  });
-  return component;
-}
 
 // ../../../src/utils/llm.js
 function generateModelId(model_name, model_provider) {
@@ -11355,42 +11301,39 @@ function initialize_hasher(hasher_model = DEFAULT_HASHER_MODEL) {
 
 // PdfToDocComponent.js
 var NS_ONMI = "pdf2doc";
-var load_pdf_component = OAIBaseComponent2.create(NS_ONMI, "pdf2doc").fromScratch().set("title", "Convert pdf to text document").set("category", "Text Manipulation").set("description", "Convert pdf files to omnitool document format.").setMethod("X-CUSTOM").setMeta({
-  source: {
-    summary: "Convert pdf files to omnitool document format",
-    links: {
-      "PDF-parse Github": "https://github.com/UpLab/pdf-parse"
-    }
-  }
-});
-var inputs = [
-  { name: "documents", type: "array", customSocket: "documentArray", title: "PDF document(s) to convert", defaultValue: [] },
-  { name: "url", type: "string", title: "and/or PDF url(s)", customSocket: "text" },
-  { name: "overwrite", type: "boolean", defaultValue: false, description: "Overwrite the existing files in the CDN" }
-];
-load_pdf_component = setComponentInputs(load_pdf_component, inputs);
-var controls = [
-  { name: "documents", placeholder: "AlpineCodeMirrorComponent" }
-];
-load_pdf_component = setComponentControls(load_pdf_component, controls);
-var outputs = [
-  { name: "documents", type: "array", customSocket: "documentArray", title: "TEXT Documents", description: "The converted documents" }
-];
-load_pdf_component = setComponentOutputs(load_pdf_component, outputs);
-load_pdf_component.setMacro(OmniComponentMacroTypes2.EXEC, parsePayload);
-async function parsePayload(payload, ctx) {
+var component = OAIBaseComponent2.create(NS_ONMI, "pdf2doc");
+component.fromScratch().set("title", "Convert pdf to text document").set("description", "Convert pdf files to omnitool document format.").set("category", Category.TEXT_MANIPULATION).setMethod("X-CUSTOM");
+component.addInput(
+  component.createInput("documents", "array", "documentArray").set("title", "PDF document(s) to convert").set("description", "One or more documents").setControl({
+    controlType: "AlpineLabelComponent"
+  }).toOmniIO()
+).addInput(
+  component.createInput("url", "string", "text").set("title", "and/or PDF url(s)").set("description", "One or more urls").setControl({
+    controlType: "AlpineLabelComponent"
+  }).toOmniIO()
+).addInput(
+  component.createInput("overwrite", "boolean").set("title", "Overwrite the existing files in the CDN").set("description", "Overwrite the existing files in the CDN").setControl({
+    controlType: "AlpineToggleComponent"
+  }).toOmniIO()
+).addOutput(
+  component.createOutput("text", "string", "text").set("title", "Text").toOmniIO()
+).setMacro(OmniComponentMacroTypes2.EXEC, async (payload, ctx) => {
   const documents = payload.documents;
   const url = payload.url;
   const overwrite = payload.overwrite;
   const text_cdns = await pdfToDoc(ctx, documents, url, overwrite);
-  const return_value = { result: { "ok": true }, documents: text_cdns };
+  const return_value = { result: { ok: true }, documents: text_cdns };
   return return_value;
-}
+});
 async function pdfToDoc(ctx, passed_documents_cdns, url, overwrite = false) {
   console.time("load_pdf_component_processTime");
   let passed_documents_are_valid = passed_documents_cdns != null && passed_documents_cdns != void 0 && Array.isArray(passed_documents_cdns) && passed_documents_cdns.length > 0;
   if (passed_documents_are_valid) {
-    console_log(`read #${passed_documents_cdns.lentgh} from "documents" input, passed_documents_cdns = ${JSON.stringify(passed_documents_cdns)}`);
+    console_log(
+      `read #${passed_documents_cdns.lentgh} from "documents" input, passed_documents_cdns = ${JSON.stringify(
+        passed_documents_cdns
+      )}`
+    );
   }
   const parsedArray = parse_text_to_array(url);
   const cdn_tickets = rebuildToTicketObjectsIfNeeded(parsedArray);
@@ -11476,7 +11419,7 @@ function extractTextFields(jsonData) {
   });
   return concatenatedTexts;
 }
-var PdfToDocComponent = load_pdf_component.toJSON();
+var PdfToDocComponent = component.toJSON();
 
 // extension.js
 var components = [PdfToDocComponent];
