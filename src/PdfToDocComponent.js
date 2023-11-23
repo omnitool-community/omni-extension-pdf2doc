@@ -64,8 +64,8 @@ component
   )
   .addOutput(
     component
-     .createOutput('text', 'string', 'text')
-     .set('title', 'Text')
+     .createOutput('documents', 'array', 'documentArray')
+     .set('title', 'Text document(s)')
      .toOmniIO()
     )
 

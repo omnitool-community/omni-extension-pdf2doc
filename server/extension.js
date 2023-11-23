@@ -11316,7 +11316,7 @@ component.addInput(
     controlType: "AlpineToggleComponent"
   }).toOmniIO()
 ).addOutput(
-  component.createOutput("text", "string", "text").set("title", "Text").toOmniIO()
+  component.createOutput("documents", "array", "documentArray").set("title", "Text document(s)").toOmniIO()
 ).setMacro(OmniComponentMacroTypes2.EXEC, async (payload, ctx) => {
   const documents = payload.documents;
   const url = payload.url;
