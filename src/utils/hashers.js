@@ -6,7 +6,7 @@
 // hashers.js
 
 import { SHA256Hasher } from "./hashersSHA256.js";
-import { console_log, is_valid } from "./utils.js";
+import { console_log, is_valid } from '../../../../src/utils/omni-utils.js';
 
 const HASHER_MODEL_SHA256 = "SHA256";
 const DEFAULT_HASHER_MODEL = HASHER_MODEL_SHA256;
